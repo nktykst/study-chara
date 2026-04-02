@@ -118,7 +118,9 @@ async def send_message(
         Message.conversation_id == conversation_id
     ).order_by(Message.created_at).all()
 
-    messages_for_ai = [{"role": m.role, "content": m.content} for m in history]
+    # 直近10件のみ送信してトークン節約
+    recent_history = history[-10:]
+    messages_for_ai = [{"role": m.role, "content": m.content} for m in recent_history]
 
     # キャラクター情報とスタディプランを取得
     plan = db.query(StudyPlan).filter(StudyPlan.id == conversation.study_plan_id).first()
@@ -126,21 +128,14 @@ async def send_message(
     if plan and plan.character_id:
         character = db.query(Character).filter(Character.id == plan.character_id).first()
 
-    # システムプロンプト構築
+    # システムプロンプト構築（plan情報は簡潔に）
     if character:
         system = build_character_system_prompt(character)
     else:
         system = "あなたは学習サポートAIです。ユーザーの学習を支援してください。"
 
     if plan:
-        system += (
-            f"\n\n現在の学習計画:\n"
-            f"タイトル: {plan.title}\n"
-            f"目標: {plan.goal}\n"
-            f"期間: {plan.start_date} ～ {plan.end_date}\n"
-        )
-        if plan.ai_plan:
-            system += f"学習計画:\n{plan.ai_plan}"
+        system += f"\n\n学習計画: {plan.title}／目標: {plan.goal}／期間: {plan.start_date}〜{plan.end_date}"
 
     # AI返答生成
     ai_service = get_ai_service(current_user)
@@ -151,7 +146,7 @@ async def send_message(
         )
 
     try:
-        ai_response = await ai_service.generate(system=system, messages=messages_for_ai)
+        ai_response = await ai_service.generate(system=system, messages=messages_for_ai, max_tokens=512)
     except Exception as e:
         err = str(e)
         if "429" in err or "quota" in err.lower() or "rate" in err.lower():

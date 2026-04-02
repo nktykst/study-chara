@@ -15,11 +15,11 @@ class AIService:
         else:
             raise ValueError(f"Unsupported provider: {provider}")
 
-    async def generate(self, system: str, messages: list[dict]) -> str:
+    async def generate(self, system: str, messages: list[dict], max_tokens: int = 512) -> str:
         if self.provider == "anthropic":
             response = self.anthropic_client.messages.create(
                 model="claude-sonnet-4-5",
-                max_tokens=2048,
+                max_tokens=max_tokens,
                 system=system,
                 messages=messages,
             )

@@ -15,13 +15,11 @@ async def generate_ai_plan(
         {
             "role": "user",
             "content": (
-                f"学習目標: {goal}\n"
-                f"開始日: {start_date}\n"
-                f"終了日: {end_date}\n\n"
-                "この目標を達成するための学習計画を作成してください。"
-                "励ましの言葉も交えながら、具体的な学習の進め方を教えてください。"
+                f"目標: {goal}\n"
+                f"期間: {start_date}〜{end_date}\n\n"
+                "学習計画を300字以内で作成してください。"
             ),
         }
     ]
 
-    return await ai_service.generate(system=system, messages=messages)
+    return await ai_service.generate(system=system, messages=messages, max_tokens=400)

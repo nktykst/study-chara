@@ -22,21 +22,22 @@ async def generate_tasks_from_ai(
         "due_dateはstart_dateとend_dateの間の日付にすること。"
     )
 
+    # ai_planは長くなりがちなので先頭300文字に制限
+    ai_plan_summary = (study_plan.ai_plan or "")[:300]
+
     messages = [
         {
             "role": "user",
             "content": (
-                f"学習目標: {study_plan.goal}\n"
-                f"開始日: {study_plan.start_date}\n"
-                f"終了日: {study_plan.end_date}\n"
-                f"学習計画:\n{study_plan.ai_plan or '未生成'}\n\n"
-                "この計画を実行するための具体的なタスクリストをJSON形式で生成してください。"
-                "タスクは5〜15個程度にしてください。"
+                f"目標: {study_plan.goal}\n"
+                f"期間: {study_plan.start_date}〜{study_plan.end_date}\n"
+                f"計画概要: {ai_plan_summary}\n\n"
+                "タスクを5〜8個生成してください。descriptionは1文以内で簡潔に。"
             ),
         }
     ]
 
-    raw = await ai_service.generate(system=system, messages=messages)
+    raw = await ai_service.generate(system=system, messages=messages, max_tokens=1024)
 
     # JSONパース（```json ... ``` ブロックを除去）
     raw = raw.strip()
@@ -54,13 +55,13 @@ async def generate_cheer_message(
     task_title: str,
 ) -> str:
     system = build_character_system_prompt(character)
-    system += "\n\nユーザーがタスクを完了したときに励ましメッセージを生成してください。短く、元気が出るメッセージにしてください。"
+    system += "\n\n励ましメッセージを1〜2文で生成してください。簡潔に。"
 
     messages = [
         {
             "role": "user",
-            "content": f"タスク「{task_title}」を完了しました！励ましのメッセージをください。",
+            "content": f"「{task_title}」完了！",
         }
     ]
 
-    return await ai_service.generate(system=system, messages=messages)
+    return await ai_service.generate(system=system, messages=messages, max_tokens=100)
