@@ -91,9 +91,16 @@ async def generate_tasks(
             study_plan=plan,
         )
     except Exception as e:
+        err = str(e)
+        if "429" in err or "quota" in err.lower() or "rate" in err.lower():
+            detail = "APIの利用制限に達しました。しばらく待ってから再度お試しください。"
+        elif "401" in err or "invalid" in err.lower() or "api key" in err.lower():
+            detail = "APIキーが無効です。設定画面で正しいAPIキーを登録してください。"
+        else:
+            detail = "AIによるタスク生成に失敗しました。しばらく待ってから再度お試しください。"
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate tasks: {str(e)}",
+            detail=detail,
         )
 
     # 既存タスクを削除してから新規追加

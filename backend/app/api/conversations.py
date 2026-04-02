@@ -153,9 +153,16 @@ async def send_message(
     try:
         ai_response = await ai_service.generate(system=system, messages=messages_for_ai)
     except Exception as e:
+        err = str(e)
+        if "429" in err or "quota" in err.lower() or "rate" in err.lower():
+            detail = "APIの利用制限に達しました。しばらく待ってから再度お試しください。"
+        elif "401" in err or "invalid" in err.lower() or "api key" in err.lower():
+            detail = "APIキーが無効です。設定画面で正しいAPIキーを登録してください。"
+        else:
+            detail = "AIの返答生成に失敗しました。しばらく待ってから再度お試しください。"
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"AI generation failed: {str(e)}",
+            detail=detail,
         )
 
     # AIメッセージを保存

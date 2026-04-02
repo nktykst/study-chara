@@ -79,7 +79,7 @@ export default function NewPlanPage() {
               className="input"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="例：医師国家試験対策"
+              placeholder="例：英語学習、プログラミング入門"
             />
           </div>
 
@@ -89,7 +89,7 @@ export default function NewPlanPage() {
               className="input resize-none h-24"
               value={form.goal}
               onChange={(e) => setForm({ ...form, goal: e.target.value })}
-              placeholder="例：来年4月の医師国家試験に合格する。特に内科・外科を重点的に学習する。"
+              placeholder="例：3ヶ月でTOEIC800点を取得する。リスニングとリーディングをバランスよく学習する。"
             />
           </div>
 
