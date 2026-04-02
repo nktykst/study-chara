@@ -11,7 +11,7 @@ class AIService:
             self.anthropic_client = anthropic.Anthropic(api_key=api_key)
         elif provider == "google":
             genai.configure(api_key=api_key)
-            self.gemini_model = genai.GenerativeModel("gemini-2.0-flash")
+            self.gemini_model = genai.GenerativeModel("gemini-2.5-flash")
         else:
             raise ValueError(f"Unsupported provider: {provider}")
 
