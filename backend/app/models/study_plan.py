@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, DateTime, Text, Date, ForeignKey
+from sqlalchemy import Column, String, DateTime, Text, Date, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.models.base import Base, generate_uuid
@@ -17,6 +17,9 @@ class StudyPlan(Base):
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
     ai_plan = Column(Text, nullable=True)
+    ai_plan_summary = Column(Text, nullable=True)
+    task_count = Column(Integer, nullable=False, server_default="0")
+    completed_count = Column(Integer, nullable=False, server_default="0")
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="study_plans")

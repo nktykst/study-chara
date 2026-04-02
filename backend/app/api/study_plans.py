@@ -90,6 +90,7 @@ async def create_study_plan(
                     end_date=data.end_date,
                 )
                 plan.ai_plan = ai_plan
+                plan.ai_plan_summary = ai_plan[:200] if ai_plan else None
                 db.commit()
                 db.refresh(plan)
             except Exception:

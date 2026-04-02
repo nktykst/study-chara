@@ -33,6 +33,8 @@ export interface StudyPlan {
   start_date: string;
   end_date: string;
   ai_plan: string | null;
+  task_count: number;
+  completed_count: number;
   created_at: string;
 }
 

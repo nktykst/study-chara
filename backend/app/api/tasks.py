@@ -186,6 +186,8 @@ async def generate_tasks(
         db.add(task)
         tasks.append(task)
 
+    plan.task_count = len(tasks)
+    plan.completed_count = 0
     db.commit()
     for t in tasks:
         db.refresh(t)
@@ -200,7 +202,7 @@ async def create_task(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    _get_plan_or_404(plan_id, current_user.id, db)
+    plan = _get_plan_or_404(plan_id, current_user.id, db)
 
     task = Task(
         study_plan_id=plan_id,
@@ -210,6 +212,7 @@ async def create_task(
         order_index=data.order_index,
     )
     db.add(task)
+    plan.task_count = (plan.task_count or 0) + 1
     db.commit()
     db.refresh(task)
     return _task_to_response(task, current_user.id, db)
@@ -265,6 +268,15 @@ async def delete_task(
     if not plan:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
+    # 完了済みかチェックしてカウンターを更新
+    completion = db.query(TaskCompletion).filter(
+        TaskCompletion.task_id == task_id,
+        TaskCompletion.user_id == current_user.id,
+    ).first()
+    plan.task_count = max(0, (plan.task_count or 1) - 1)
+    if completion:
+        plan.completed_count = max(0, (plan.completed_count or 1) - 1)
+
     db.delete(task)
     db.commit()
 
@@ -315,6 +327,7 @@ async def complete_task(
         cheer_message=cheer_message,
     )
     db.add(completion)
+    plan.completed_count = (plan.completed_count or 0) + 1
     db.commit()
     db.refresh(completion)
     return completion
@@ -343,4 +356,5 @@ async def uncomplete_task(
     ).first()
     if completion:
         db.delete(completion)
+        plan.completed_count = max(0, (plan.completed_count or 1) - 1)
         db.commit()

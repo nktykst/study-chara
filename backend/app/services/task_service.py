@@ -22,8 +22,8 @@ async def generate_tasks_from_ai(
         "due_dateはstart_dateとend_dateの間の日付にすること。"
     )
 
-    # ai_planは長くなりがちなので先頭200文字に制限
-    ai_plan_summary = (study_plan.ai_plan or "")[:200]
+    # ai_plan_summaryがあればそれを使い、なければai_planの先頭200文字
+    ai_plan_summary = getattr(study_plan, 'ai_plan_summary', None) or (study_plan.ai_plan or "")[:200]
     situation_part = f"\n現在の状況: {study_plan.current_situation}" if getattr(study_plan, 'current_situation', None) else ""
 
     messages = [

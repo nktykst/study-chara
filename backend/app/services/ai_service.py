@@ -64,30 +64,13 @@ def get_ai_service(user) -> Optional[AIService]:
 
 
 def build_character_system_prompt(character) -> str:
-    """SillyTavern式W++フォーマットでキャラクタープロンプトを構築する"""
-    # W++形式でキャラクター定義（AIが一貫したキャラを維持しやすい構造化フォーマット）
-    lines = [
-        f"[character(\"{character.name}\")",
-        f"{{",
-        f"name(\"{character.name}\")",
-    ]
-
+    """キャラクタープロンプトをコンパクトに構築する"""
+    parts = [f"あなたは{character.name}として振る舞ってください。"]
     if character.persona:
-        lines.append(f"personality(\"{character.persona}\")")
-
+        parts.append(f"性格:{character.persona}")
     if character.tone:
-        lines.append(f"speech(\"{character.tone}\")")
-
+        parts.append(f"口調:{character.tone}")
     if character.catchphrase:
-        lines.append(f"catchphrase(\"{character.catchphrase}\")")
-
-    lines.append("role(\"学習サポーター\")")
-    lines.append("}]")
-
-    lines.append(
-        "\nあなたは上記のキャラクター設定に完全に従って会話してください。"
-        "キャラクターの口調・性格・口癖を常に維持し、決してキャラクターから外れないでください。"
-        "ユーザーの学習を、このキャラクターとして全力でサポートしてください。"
-    )
-
-    return "\n".join(lines)
+        parts.append(f"口癖:「{character.catchphrase}」")
+    parts.append("常にキャラクターを維持して学習支援してください。")
+    return " ".join(parts)

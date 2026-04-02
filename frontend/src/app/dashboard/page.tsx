@@ -6,15 +6,10 @@ import Link from 'next/link';
 import NavBar from '@/components/NavBar';
 import ApiKeyBanner from '@/components/ApiKeyBanner';
 import ProgressRing from '@/components/ProgressRing';
-import { listStudyPlans, getApiKeyStatus, deleteStudyPlan, listTodayTasks, listTasks, completeTask } from '@/lib/api';
+import { listStudyPlans, getApiKeyStatus, deleteStudyPlan, listTodayTasks, completeTask } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
-import type { StudyPlan, ApiKeyStatus, TodayTask, Task } from '@/types';
+import type { StudyPlan, ApiKeyStatus, TodayTask } from '@/types';
 import { Plus, Calendar, Trash2, MessageCircle, BookOpen, AlertCircle, Circle } from 'lucide-react';
-
-interface PlanProgress {
-  total: number;
-  completed: number;
-}
 
 export default function DashboardPage() {
   const { getToken } = useAuth();
@@ -23,7 +18,6 @@ export default function DashboardPage() {
   const [plans, setPlans] = useState<StudyPlan[]>([]);
   const [todayTasks, setTodayTasks] = useState<TodayTask[]>([]);
   const [apiKeyStatus, setApiKeyStatus] = useState<ApiKeyStatus | null>(null);
-  const [progress, setProgress] = useState<Record<string, PlanProgress>>({});
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
@@ -37,22 +31,6 @@ export default function DashboardPage() {
     setApiKeyStatus(keyStatus);
     setTodayTasks(todayData);
     setLoading(false);
-
-    // 各プランのタスク進捗を並列取得
-    const taskResults = await Promise.all(
-      plansData.map((plan) =>
-        listTasks(gt, plan.id).catch(() => [] as Task[])
-      )
-    );
-    const prog: Record<string, PlanProgress> = {};
-    plansData.forEach((plan, i) => {
-      const tasks = taskResults[i];
-      prog[plan.id] = {
-        total: tasks.length,
-        completed: tasks.filter((t) => t.is_completed).length,
-      };
-    });
-    setProgress(prog);
   };
 
   useEffect(() => { load(); }, []);
@@ -143,9 +121,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
-              {plans.map((plan) => {
-                const prog = progress[plan.id];
-                return (
+              {plans.map((plan) => (
                   <div key={plan.id} className="card p-5 hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start mb-3">
                       <h2 className="font-semibold text-gray-900 text-lg leading-tight flex-1 mr-2">{plan.title}</h2>
@@ -158,10 +134,7 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-4 mb-3">
-                      {/* 進捗リング */}
-                      {prog && (
-                        <ProgressRing completed={prog.completed} total={prog.total} size={72} />
-                      )}
+                      <ProgressRing completed={plan.completed_count} total={plan.task_count} size={72} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-600 mb-2 line-clamp-2">{plan.goal}</p>
                         <div className="flex items-center gap-1.5 text-xs text-gray-400">
@@ -171,13 +144,12 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* 進捗バー */}
-                    {prog && prog.total > 0 && (
+                    {plan.task_count > 0 && (
                       <div className="mb-4">
                         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-primary-500 rounded-full transition-all duration-500"
-                            style={{ width: `${(prog.completed / prog.total) * 100}%` }}
+                            style={{ width: `${(plan.completed_count / plan.task_count) * 100}%` }}
                           />
                         </div>
                       </div>
@@ -193,8 +165,7 @@ export default function DashboardPage() {
                       </Link>
                     </div>
                   </div>
-                );
-              })}
+              ))}
             </div>
           )}
         </section>
