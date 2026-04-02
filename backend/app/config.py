@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic_settings import BaseSettings
 
 
@@ -5,6 +6,7 @@ class Settings(BaseSettings):
     database_url: str
     clerk_secret_key: str
     encryption_key: str
+    default_gemini_api_key: Optional[str] = None  # キー未設定ユーザー向けフォールバック
 
     class Config:
         env_file = ".env"

@@ -42,38 +42,52 @@ class AIService:
 
 
 def get_ai_service(user) -> Optional[AIService]:
-    """ユーザーのAPIキーからAIServiceを構築する"""
-    if not user.encrypted_api_key:
-        return None
-
+    """ユーザーのAPIキーからAIServiceを構築する。未設定の場合は開発者のデフォルトキーにフォールバック"""
     from cryptography.fernet import Fernet
     from app.config import settings
 
-    fernet = Fernet(
-        settings.encryption_key.encode()
-        if isinstance(settings.encryption_key, str)
-        else settings.encryption_key
-    )
-    api_key = fernet.decrypt(user.encrypted_api_key.encode()).decode()
-    return AIService(provider=user.ai_provider, api_key=api_key)
+    # ユーザー自身のキーが設定されている場合はそれを優先
+    if user.encrypted_api_key:
+        fernet = Fernet(
+            settings.encryption_key.encode()
+            if isinstance(settings.encryption_key, str)
+            else settings.encryption_key
+        )
+        api_key = fernet.decrypt(user.encrypted_api_key.encode()).decode()
+        return AIService(provider=user.ai_provider, api_key=api_key)
+
+    # フォールバック：開発者のデフォルトGeminiキー
+    if settings.default_gemini_api_key:
+        return AIService(provider="google", api_key=settings.default_gemini_api_key)
+
+    return None
 
 
 def build_character_system_prompt(character) -> str:
-    """キャラクターのシステムプロンプトを構築する"""
-    parts = [f"あなたは「{character.name}」というキャラクターです。"]
+    """SillyTavern式W++フォーマットでキャラクタープロンプトを構築する"""
+    # W++形式でキャラクター定義（AIが一貫したキャラを維持しやすい構造化フォーマット）
+    lines = [
+        f"[character(\"{character.name}\")",
+        f"{{",
+        f"name(\"{character.name}\")",
+    ]
 
     if character.persona:
-        parts.append(f"人格・性格: {character.persona}")
+        lines.append(f"personality(\"{character.persona}\")")
 
     if character.tone:
-        parts.append(f"話し方・口調: {character.tone}")
+        lines.append(f"speech(\"{character.tone}\")")
 
     if character.catchphrase:
-        parts.append(f"励ます時の口癖: 「{character.catchphrase}」")
+        lines.append(f"catchphrase(\"{character.catchphrase}\")")
 
-    parts.append(
-        "ユーザーの学習をサポートする役割です。"
-        "常にキャラクターの口調・人格を保ちながら回答してください。"
+    lines.append("role(\"学習サポーター\")")
+    lines.append("}]")
+
+    lines.append(
+        "\nあなたは上記のキャラクター設定に完全に従って会話してください。"
+        "キャラクターの口調・性格・口癖を常に維持し、決してキャラクターから外れないでください。"
+        "ユーザーの学習を、このキャラクターとして全力でサポートしてください。"
     )
 
-    return "\n".join(parts)
+    return "\n".join(lines)

@@ -121,6 +121,7 @@ export default function SettingsPage() {
             <div>
               <label className="label">
                 APIキー
+                <span className="text-gray-400 font-normal ml-1">（任意）</span>
                 {status?.is_set && <span className="text-gray-400 font-normal">（更新する場合は新しいキーを入力）</span>}
               </label>
               <input
@@ -131,7 +132,8 @@ export default function SettingsPage() {
                 placeholder={PROVIDERS.find((p) => p.value === provider)?.placeholder}
               />
               <p className="text-xs text-gray-400 mt-1.5">
-                APIキーはサーバー側で暗号化して保存されます。平文では保存されません。
+                未設定の場合はサービスの共有枠（Gemini無料枠）で動作します。
+                自分のキーを登録すると制限なく使えます。キーはサーバー側で暗号化保存されます。
               </p>
             </div>
 

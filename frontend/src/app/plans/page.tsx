@@ -17,6 +17,7 @@ export default function NewPlanPage() {
   const [form, setForm] = useState({
     title: '',
     goal: '',
+    current_situation: '',
     character_id: '',
     start_date: '',
     end_date: '',
@@ -46,6 +47,7 @@ export default function NewPlanPage() {
       const plan = await createStudyPlan(gt, {
         title: form.title,
         goal: form.goal,
+        current_situation: form.current_situation || undefined,
         character_id: form.character_id || undefined,
         start_date: form.start_date,
         end_date: form.end_date,
@@ -90,6 +92,19 @@ export default function NewPlanPage() {
               value={form.goal}
               onChange={(e) => setForm({ ...form, goal: e.target.value })}
               placeholder="例：3ヶ月でTOEIC800点を取得する。リスニングとリーディングをバランスよく学習する。"
+            />
+          </div>
+
+          <div>
+            <label className="label">
+              現在の状況・レベル
+              <span className="text-gray-400 font-normal ml-1">（任意・記入するとAIがより適切な計画を生成します）</span>
+            </label>
+            <textarea
+              className="input resize-none h-20"
+              value={form.current_situation}
+              onChange={(e) => setForm({ ...form, current_situation: e.target.value })}
+              placeholder="例：英語は中学レベル。単語力は弱め。毎日1時間勉強できる。"
             />
           </div>
 

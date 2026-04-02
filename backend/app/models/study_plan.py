@@ -13,6 +13,7 @@ class StudyPlan(Base):
     character_id = Column(UUID(as_uuid=False), ForeignKey("characters.id", ondelete="SET NULL"), nullable=True)
     title = Column(String, nullable=False)
     goal = Column(Text, nullable=False)
+    current_situation = Column(Text, nullable=True)
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
     ai_plan = Column(Text, nullable=True)

@@ -182,6 +182,13 @@ export default function PlanDetailPage() {
 
           <p className="text-gray-700 mb-3">{plan.goal}</p>
 
+          {plan.current_situation && (
+            <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 mb-3">
+              <span className="font-medium text-gray-600">現在の状況：</span>
+              {plan.current_situation}
+            </p>
+          )}
+
           <div className="flex items-center gap-1.5 text-sm text-gray-400">
             <Calendar className="w-4 h-4" />
             <span>{formatDate(plan.start_date)} 〜 {formatDate(plan.end_date)}</span>

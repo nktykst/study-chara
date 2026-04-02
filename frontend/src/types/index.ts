@@ -29,6 +29,7 @@ export interface StudyPlan {
   character_id: string | null;
   title: string;
   goal: string;
+  current_situation: string | null;
   start_date: string;
   end_date: string;
   ai_plan: string | null;
@@ -43,6 +44,7 @@ export interface StudyPlanCreate {
   character_id?: string;
   title: string;
   goal: string;
+  current_situation?: string;
   start_date: string;
   end_date: string;
 }

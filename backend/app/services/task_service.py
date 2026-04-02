@@ -22,14 +22,15 @@ async def generate_tasks_from_ai(
         "due_dateはstart_dateとend_dateの間の日付にすること。"
     )
 
-    # ai_planは長くなりがちなので先頭300文字に制限
-    ai_plan_summary = (study_plan.ai_plan or "")[:300]
+    # ai_planは長くなりがちなので先頭200文字に制限
+    ai_plan_summary = (study_plan.ai_plan or "")[:200]
+    situation_part = f"\n現在の状況: {study_plan.current_situation}" if getattr(study_plan, 'current_situation', None) else ""
 
     messages = [
         {
             "role": "user",
             "content": (
-                f"目標: {study_plan.goal}\n"
+                f"目標: {study_plan.goal}{situation_part}\n"
                 f"期間: {study_plan.start_date}〜{study_plan.end_date}\n"
                 f"計画概要: {ai_plan_summary}\n\n"
                 "タスクを5〜8個生成してください。descriptionは1文以内で簡潔に。"

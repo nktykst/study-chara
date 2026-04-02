@@ -68,6 +68,7 @@ async def create_study_plan(
         character_id=data.character_id,
         title=data.title,
         goal=data.goal,
+        current_situation=data.current_situation,
         start_date=data.start_date,
         end_date=data.end_date,
     )
@@ -84,6 +85,7 @@ async def create_study_plan(
                     ai_service=ai_service,
                     character=character,
                     goal=data.goal,
+                    current_situation=data.current_situation,
                     start_date=data.start_date,
                     end_date=data.end_date,
                 )
@@ -124,6 +126,7 @@ async def get_study_plan(
         character_id=plan.character_id,
         title=plan.title,
         goal=plan.goal,
+        current_situation=plan.current_situation,
         start_date=plan.start_date,
         end_date=plan.end_date,
         ai_plan=plan.ai_plan,

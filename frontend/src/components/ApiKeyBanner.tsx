@@ -1,19 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { AlertTriangle } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 export default function ApiKeyBanner() {
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-3 text-sm">
-      <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-      <span className="text-amber-800">
-        AIキーが設定されていません。AI機能を使うには
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-3 text-sm">
+      <Info className="w-4 h-4 text-blue-400 flex-shrink-0" />
+      <span className="text-blue-800">
+        現在は共有の無料枠でAIを利用中です。制限なく使いたい場合は
       </span>
-      <Link href="/settings" className="font-medium text-amber-700 underline">
-        設定ページ
+      <Link href="/settings" className="font-medium text-blue-700 underline whitespace-nowrap">
+        設定画面
       </Link>
-      <span className="text-amber-800">でAPIキーを登録してください。</span>
+      <span className="text-blue-800">で自分のAPIキーを登録してください。</span>
     </div>
   );
 }

@@ -135,7 +135,8 @@ async def send_message(
         system = "あなたは学習サポートAIです。ユーザーの学習を支援してください。"
 
     if plan:
-        system += f"\n\n学習計画: {plan.title}／目標: {plan.goal}／期間: {plan.start_date}〜{plan.end_date}"
+        situation = f"／現在の状況: {plan.current_situation}" if getattr(plan, 'current_situation', None) else ""
+        system += f"\n\n学習計画: {plan.title}／目標: {plan.goal}{situation}／期間: {plan.start_date}〜{plan.end_date}"
 
     # AI返答生成
     ai_service = get_ai_service(current_user)
