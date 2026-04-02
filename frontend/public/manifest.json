@@ -1,0 +1,13 @@
+{
+  "name": "StudyChara",
+  "short_name": "StudyChara",
+  "description": "キャラクターと一緒に学習計画を立てよう",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7F77DD",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
