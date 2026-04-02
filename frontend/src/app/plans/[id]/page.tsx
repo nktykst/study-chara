@@ -6,6 +6,7 @@ import { useAuth } from '@clerk/nextjs';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
 import TaskList from '@/components/TaskList';
+import ProgressRing from '@/components/ProgressRing';
 import {
   getStudyPlan,
   generateTasks,
@@ -201,6 +202,38 @@ export default function PlanDetailPage() {
 
         {/* Tasks */}
         <div className="card p-6">
+          {/* 進捗サマリー */}
+          {plan.tasks.length > 0 && (
+            <div className="flex items-center gap-6 mb-6 p-4 bg-gray-50 rounded-xl">
+              <ProgressRing
+                completed={plan.tasks.filter((t) => t.is_completed).length}
+                total={plan.tasks.length}
+                size={88}
+              />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-700 mb-2">進捗状況</p>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>完了</span>
+                    <span>{plan.tasks.filter((t) => t.is_completed).length} タスク</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary-500 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${plan.tasks.length ? (plan.tasks.filter((t) => t.is_completed).length / plan.tasks.length) * 100 : 0}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>残り</span>
+                    <span>{plan.tasks.filter((t) => !t.is_completed).length} タスク</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-semibold text-gray-900">タスク一覧</h2>
             <div className="flex gap-2">
