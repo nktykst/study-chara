@@ -1,3 +1,4 @@
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -41,6 +42,73 @@ def _task_to_response(task: Task, user_id: str, db: Session) -> TaskResponse:
         is_completed=completion is not None,
         cheer_message=completion.cheer_message if completion else None,
     )
+
+
+class TodayTaskResponse(TaskResponse):
+    study_plan_title: str
+    is_overdue: bool
+
+
+@router.get("/tasks/today", response_model=List[TodayTaskResponse])
+async def list_today_tasks(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """今日期日のタスクと期日超過のタスクを返す（未完了のみ）"""
+    today = date.today()
+
+    # ユーザーの全プランIDを取得
+    plan_ids = [
+        p.id for p in db.query(StudyPlan.id).filter(StudyPlan.user_id == current_user.id).all()
+    ]
+    if not plan_ids:
+        return []
+
+    # 完了済みタスクIDを取得
+    completed_ids = {
+        c.task_id
+        for c in db.query(TaskCompletion.task_id).filter(
+            TaskCompletion.user_id == current_user.id
+        ).all()
+    }
+
+    # 期日が今日以前のタスクを取得
+    tasks = (
+        db.query(Task)
+        .filter(
+            Task.study_plan_id.in_(plan_ids),
+            Task.due_date != None,
+            Task.due_date <= today,
+            ~Task.id.in_(completed_ids) if completed_ids else True,
+        )
+        .order_by(Task.due_date)
+        .all()
+    )
+
+    # プランタイトルをまとめて取得
+    plans = {p.id: p for p in db.query(StudyPlan).filter(StudyPlan.id.in_(plan_ids)).all()}
+
+    result = []
+    for task in tasks:
+        if task.id in completed_ids:
+            continue
+        plan = plans.get(task.study_plan_id)
+        result.append(
+            TodayTaskResponse(
+                id=task.id,
+                study_plan_id=task.study_plan_id,
+                title=task.title,
+                description=task.description,
+                due_date=task.due_date,
+                order_index=task.order_index,
+                created_at=task.created_at,
+                is_completed=False,
+                cheer_message=None,
+                study_plan_title=plan.title if plan else "",
+                is_overdue=task.due_date < today,
+            )
+        )
+    return result
 
 
 @router.get("/study-plans/{plan_id}/tasks", response_model=List[TaskResponse])

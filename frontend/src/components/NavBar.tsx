@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
-import { BookOpen, LayoutDashboard, Users, Settings } from 'lucide-react';
+import { BookOpen, LayoutDashboard, Users, Settings, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const links = [
   { href: '/dashboard', label: 'ダッシュボード', icon: LayoutDashboard },
+  { href: '/calendar', label: 'カレンダー', icon: CalendarDays },
   { href: '/characters', label: 'キャラクター', icon: Users },
   { href: '/settings', label: '設定', icon: Settings },
 ];

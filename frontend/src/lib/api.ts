@@ -7,6 +7,7 @@ import type {
   StudyPlanCreate,
   Task,
   TaskCreate,
+  TodayTask,
   Conversation,
   ConversationDetail,
   ApiKeyStatus,
@@ -90,6 +91,8 @@ export const deleteStudyPlan = (gt: GetToken, id: string) =>
   req<null>(`/study-plans/${id}`, gt, { method: 'DELETE' });
 
 // Tasks
+export const listTodayTasks = (gt: GetToken) =>
+  req<TodayTask[]>('/tasks/today', gt);
 export const listTasks = (gt: GetToken, planId: string) =>
   req<Task[]>(`/study-plans/${planId}/tasks`, gt);
 export const generateTasks = (gt: GetToken, planId: string) =>

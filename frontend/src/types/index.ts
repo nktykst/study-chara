@@ -90,3 +90,8 @@ export interface ApiKeyStatus {
   masked_key: string | null;
   is_set: boolean;
 }
+
+export interface TodayTask extends Task {
+  study_plan_title: string;
+  is_overdue: boolean;
+}
