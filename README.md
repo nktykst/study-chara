@@ -1,6 +1,6 @@
 # StudyChara（スタディキャラ）
 
-> 萌えキャラと一緒に学習計画を達成するモチベーション管理アプリ
+> キャラと一緒に学習計画を達成するモチベーション管理アプリ
 
 **Live Demo**: https://study-chara-rfme.vercel.app
 
