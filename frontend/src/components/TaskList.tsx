@@ -74,7 +74,7 @@ export default function TaskList({ tasks, character, onComplete, onUncomplete, o
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={character.avatar_url} alt={character.name} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-3xl">🎭</span>
+                <div className="w-full h-full bg-primary-200 rounded-2xl" />
               )}
             </div>
             <div className="flex-1 min-w-0">

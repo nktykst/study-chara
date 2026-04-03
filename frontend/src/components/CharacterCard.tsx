@@ -28,7 +28,7 @@ export default function CharacterCard({ character, onEdit, onDelete }: Props) {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={character.avatar_url} alt={character.name} className="w-full h-full object-cover" />
             ) : (
-              <span className="text-xl">🎭</span>
+              <div className="w-full h-full bg-primary-200 rounded-full" />
             )}
           </div>
           <div>

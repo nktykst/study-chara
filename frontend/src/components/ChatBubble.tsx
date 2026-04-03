@@ -20,7 +20,7 @@ export default function ChatBubble({ message, characterName, characterAvatarUrl 
           // eslint-disable-next-line @next/next/no-img-element
           <img src={characterAvatarUrl} alt={characterName ?? 'AI'} className="w-full h-full object-cover" />
         ) : (
-          <span className="text-lg">🎭</span>
+          <div className="w-full h-full bg-primary-200 rounded-full" />
         )}
       </div>
 

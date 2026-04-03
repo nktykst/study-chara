@@ -98,7 +98,7 @@ export default function TasksPage() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={dashStatus.character.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-2xl">🎭</span>
+                <div className="w-full h-full bg-primary-200 rounded-2xl" />
               )}
             </div>
             <div className="flex-1">
@@ -127,7 +127,7 @@ export default function TasksPage() {
 
               {todayTasks.length === 0 ? (
                 <div className="card p-6 text-center text-gray-400 text-sm">
-                  今日のタスクはありません 🎉
+                  今日のタスクはありません
                 </div>
               ) : (
                 <div className="space-y-2">
