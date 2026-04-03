@@ -7,14 +7,10 @@ from app.config import settings
 app = FastAPI(title="StudyChara API", version="1.0.0", redirect_slashes=False)
 
 # CORS設定
-origins = ["http://localhost:3000"]
-if settings.frontend_url:
-    origins.append(settings.frontend_url)
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
