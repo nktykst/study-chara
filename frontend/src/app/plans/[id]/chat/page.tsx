@@ -6,6 +6,7 @@ import { useAuth } from '@clerk/nextjs';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
 import ChatBubble from '@/components/ChatBubble';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import {
   getStudyPlan,
   listConversations,
@@ -105,7 +106,7 @@ export default function ChatPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <div className="text-center py-16 text-gray-400">読み込み中...</div>
+        <LoadingSpinner />
       </div>
     );
   }

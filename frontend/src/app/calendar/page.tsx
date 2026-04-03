@@ -120,7 +120,10 @@ export default function CalendarPage() {
             <div className="card p-4">
               <h2 className="text-sm font-semibold text-gray-700 mb-3">表示する計画</h2>
               {loading ? (
-                <p className="text-xs text-gray-400">読み込み中...</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-gray-200 border-t-primary-400 rounded-full animate-spin" />
+                  <p className="text-xs text-gray-400">読み込み中...</p>
+                </div>
               ) : plans.length === 0 ? (
                 <p className="text-xs text-gray-400">計画がありません</p>
               ) : (
