@@ -5,12 +5,15 @@ from app.api import users, characters, study_plans, tasks, conversations
 app = FastAPI(title="StudyChara API", version="1.0.0")
 
 # CORS設定
+from app.config import settings
+
+origins = ["http://localhost:3000"]
+if settings.frontend_url:
+    origins.append(settings.frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://*.vercel.app",
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

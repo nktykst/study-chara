@@ -6,7 +6,8 @@ class Settings(BaseSettings):
     database_url: str
     clerk_secret_key: str
     encryption_key: str
-    default_gemini_api_key: Optional[str] = None  # キー未設定ユーザー向けフォールバック
+    default_gemini_api_key: Optional[str] = None
+    frontend_url: Optional[str] = None  # 本番フロントエンドURL
 
     class Config:
         env_file = ".env"
