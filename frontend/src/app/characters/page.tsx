@@ -7,6 +7,7 @@ import CharacterCard from '@/components/CharacterCard';
 import { listCharacters, createCharacter, updateCharacter, deleteCharacter } from '@/lib/api';
 import type { Character, CharacterCreate } from '@/types';
 import { Plus, X } from 'lucide-react';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface FormState {
   name: string;
@@ -107,7 +108,7 @@ export default function CharactersPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-16 text-gray-400">読み込み中...</div>
+          <LoadingSpinner />
         ) : characters.length === 0 ? (
           <div className="card p-12 text-center">
             <p className="text-gray-500 mb-4">キャラクターがまだいません</p>

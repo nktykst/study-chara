@@ -8,6 +8,7 @@ import NavBar from '@/components/NavBar';
 import TaskList from '@/components/TaskList';
 import ProgressRing from '@/components/ProgressRing';
 import PomodoroTimer from '@/components/PomodoroTimer';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import {
   getStudyPlan,
   generateTasks,
@@ -179,7 +180,7 @@ export default function PlanDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <div className="text-center py-16 text-gray-400">読み込み中...</div>
+        <LoadingSpinner />
       </div>
     );
   }

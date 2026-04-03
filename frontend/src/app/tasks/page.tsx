@@ -5,6 +5,7 @@ import { useAuth } from '@clerk/nextjs';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
 import { listTodayTasks, listUpcomingTasks, listCompletedTasks, completeTask, getDashboardStatus } from '@/lib/api';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import type { TodayTask, DashboardStatus } from '@/types';
 import { formatDate } from '@/lib/utils';
 import { CheckCircle2, Circle, AlertCircle, Calendar, ChevronRight, Trophy } from 'lucide-react';
@@ -114,7 +115,7 @@ export default function TasksPage() {
         <h1 className="text-2xl font-bold text-gray-900">タスク</h1>
 
         {loading ? (
-          <div className="text-center py-16 text-gray-400">読み込み中...</div>
+          <LoadingSpinner />
         ) : (
           <>
             {/* 今日のタスク */}

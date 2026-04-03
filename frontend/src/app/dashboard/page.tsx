@@ -10,6 +10,7 @@ import { listStudyPlans, getApiKeyStatus, deleteStudyPlan, listTodayTasks, compl
 import { formatDate } from '@/lib/utils';
 import type { StudyPlan, ApiKeyStatus, TodayTask, DashboardStatus } from '@/types';
 import CharacterWidget from '@/components/CharacterWidget';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { Plus, Calendar, Trash2, BookOpen, AlertCircle, Circle } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -49,7 +50,11 @@ export default function DashboardPage() {
     const today = new Date().toDateString();
     const saved = localStorage.getItem('todayGoal');
     const savedDate = localStorage.getItem('todayGoalDate');
-    if (saved && savedDate === today) setSavedGoal(saved);
+    const savedReply = localStorage.getItem('todayGoalReply');
+    if (saved && savedDate === today) {
+      setSavedGoal(saved);
+      if (savedReply) setGoalReply(savedReply);
+    }
   }, []);
 
   // 達成率を全プランで計算
@@ -60,18 +65,18 @@ export default function DashboardPage() {
   const handleSaveGoal = () => {
     if (!todayGoal.trim()) return;
     const today = new Date().toDateString();
-    localStorage.setItem('todayGoal', todayGoal);
-    localStorage.setItem('todayGoalDate', today);
-    setSavedGoal(todayGoal);
-
-    // キャラの返答（固定候補からランダム）
     const replies = [
       `「${todayGoal}」了解！一緒に頑張ろ。`,
       `待ってた！「${todayGoal}」ね、応援してる。`,
       `${todayGoal}、いいね。絶対できるよ。`,
       `よし、「${todayGoal}」終わったら教えて！`,
     ];
-    setGoalReply(replies[Math.floor(Math.random() * replies.length)]);
+    const reply = replies[Math.floor(Math.random() * replies.length)];
+    localStorage.setItem('todayGoal', todayGoal);
+    localStorage.setItem('todayGoalDate', today);
+    localStorage.setItem('todayGoalReply', reply);
+    setSavedGoal(todayGoal);
+    setGoalReply(reply);
     setTodayGoal('');
   };
 
@@ -131,7 +136,7 @@ export default function DashboardPage() {
                   </div>
                 )}
                 <button
-                  onClick={() => { setSavedGoal(null); setGoalReply(null); localStorage.removeItem('todayGoal'); }}
+                  onClick={() => { setSavedGoal(null); setGoalReply(null); localStorage.removeItem('todayGoal'); localStorage.removeItem('todayGoalReply'); }}
                   className="text-xs text-gray-400 hover:text-gray-600 mt-2"
                 >
                   変更する
@@ -232,7 +237,7 @@ export default function DashboardPage() {
           </div>
 
           {loading ? (
-            <div className="text-center py-16 text-gray-400">読み込み中...</div>
+            <LoadingSpinner />
           ) : plans.length === 0 ? (
             <div className="card p-12 text-center">
               <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
