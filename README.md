@@ -9,7 +9,7 @@
 - **認証**: Clerk
 - **DB**: Vercel Postgres（PostgreSQL）
 - **ORM**: SQLAlchemy + Alembic
-- **AI**: Anthropic Claude API / Google Gemini API（BYOK方式）
+- **AI**: Anthropic Claude API / Google Gemini API（半BYOK方式）
 - **デプロイ**: Vercel
 
 ## セットアップ
