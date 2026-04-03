@@ -87,8 +87,12 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, tempUserMsg]);
 
     try {
-      const detail = await sendMessage(gt, conversationId, content);
-      setMessages(detail.messages);
+      const aiMsg = await sendMessage(gt, conversationId, content);
+      setMessages((prev) => [
+        ...prev.filter((m) => m.id !== tempUserMsg.id),
+        tempUserMsg,
+        aiMsg,
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : '送信に失敗しました');
       setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
@@ -119,21 +123,16 @@ export default function ChatPage() {
           >
             <ChevronLeft className="w-5 h-5" />
           </Link>
+          {character?.avatar_url && (
+            <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={character.avatar_url} alt={character.name} className="w-full h-full object-cover" />
+            </div>
+          )}
           <div>
             <p className="text-xs text-gray-400">{planTitle}</p>
-            <p className="font-semibold text-gray-900 flex items-center gap-1.5">
-              {character ? (
-                <>
-                  <span>{character.name}</span>
-                  {character.tone && (
-                    <span className="text-xs font-normal text-gray-400">
-                      ({character.tone})
-                    </span>
-                  )}
-                </>
-              ) : (
-                'AIアシスタント'
-              )}
+            <p className="font-semibold text-gray-900">
+              {character ? character.name : 'AIアシスタント'}
             </p>
           </div>
         </div>
@@ -160,14 +159,20 @@ export default function ChatPage() {
                 key={msg.id}
                 message={msg}
                 characterName={character?.name}
+                characterAvatarUrl={character?.avatar_url}
               />
             ))
           )}
 
           {sending && (
             <div className="flex gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-4 h-4 text-primary-400 animate-pulse" />
+              <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center flex-shrink-0">
+                {character?.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={character.avatar_url} alt={character.name} className="w-full h-full object-cover opacity-70" />
+                ) : (
+                  <Sparkles className="w-4 h-4 text-primary-400 animate-pulse" />
+                )}
               </div>
               <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3">
                 <div className="flex gap-1">

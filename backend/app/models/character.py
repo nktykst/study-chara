@@ -14,6 +14,8 @@ class Character(Base):
     persona = Column(Text, nullable=True)
     tone = Column(String, nullable=True)
     catchphrase = Column(String, nullable=True)
+    custom_prompt = Column(Text, nullable=True)
+    avatar_url = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="characters")

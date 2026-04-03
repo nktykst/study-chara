@@ -13,6 +13,8 @@ export interface Character {
   persona: string | null;
   tone: string | null;
   catchphrase: string | null;
+  custom_prompt: string | null;
+  avatar_url: string | null;
   created_at: string;
 }
 
@@ -21,6 +23,8 @@ export interface CharacterCreate {
   persona?: string;
   tone?: string;
   catchphrase?: string;
+  custom_prompt?: string;
+  avatar_url?: string;
 }
 
 export interface StudyPlan {
@@ -93,6 +97,28 @@ export interface ApiKeyStatus {
   provider: string;
   masked_key: string | null;
   is_set: boolean;
+}
+
+export interface DashboardTitle {
+  id: string;
+  label: string;
+  condition: string;
+  emoji: string;
+}
+
+export interface DashboardStatus {
+  character: {
+    id: string;
+    name: string;
+    avatar_url: string | null;
+    catchphrase: string | null;
+  } | null;
+  affection: number;
+  login_streak: number;
+  mood: 'happy' | 'normal' | 'lonely';
+  greeting: string;
+  titles: DashboardTitle[];
+  weekly_report: string | null;
 }
 
 export interface TodayTask extends Task {

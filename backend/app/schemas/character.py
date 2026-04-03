@@ -8,6 +8,8 @@ class CharacterCreate(BaseModel):
     persona: Optional[str] = None
     tone: Optional[str] = None
     catchphrase: Optional[str] = None
+    custom_prompt: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 
 class CharacterUpdate(BaseModel):
@@ -15,6 +17,8 @@ class CharacterUpdate(BaseModel):
     persona: Optional[str] = None
     tone: Optional[str] = None
     catchphrase: Optional[str] = None
+    custom_prompt: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 
 class CharacterResponse(BaseModel):
@@ -24,6 +28,8 @@ class CharacterResponse(BaseModel):
     persona: Optional[str]
     tone: Optional[str]
     catchphrase: Optional[str]
+    custom_prompt: Optional[str]
+    avatar_url: Optional[str]
     created_at: datetime
 
     model_config = {"from_attributes": True}

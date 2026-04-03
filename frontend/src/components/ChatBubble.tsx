@@ -1,26 +1,26 @@
 import type { Message } from '@/types';
 import { formatDateTime } from '@/lib/utils';
-import { User, Bot } from 'lucide-react';
+import { User } from 'lucide-react';
 
 interface Props {
   message: Message;
   characterName?: string;
+  characterAvatarUrl?: string | null;
 }
 
-export default function ChatBubble({ message, characterName }: Props) {
+export default function ChatBubble({ message, characterName, characterAvatarUrl }: Props) {
   const isUser = message.role === 'user';
 
   return (
     <div className={`flex gap-2.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-      <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-          isUser ? 'bg-gray-200' : 'bg-primary-100'
-        }`}
-      >
+      <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 bg-gray-200">
         {isUser ? (
           <User className="w-4 h-4 text-gray-500" />
+        ) : characterAvatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={characterAvatarUrl} alt={characterName ?? 'AI'} className="w-full h-full object-cover" />
         ) : (
-          <Bot className="w-4 h-4 text-primary-500" />
+          <span className="text-lg">🎭</span>
         )}
       </div>
 

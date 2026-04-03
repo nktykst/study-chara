@@ -14,7 +14,7 @@ from app.schemas.study_plan import (
 from app.schemas.task import TaskResponse
 from app.models.task import Task, TaskCompletion
 from app.services.ai_service import get_ai_service
-from app.services.plan_service import generate_ai_plan
+from app.services.plan_service import generate_ai_plan, regenerate_ai_plan
 
 router = APIRouter()
 
@@ -76,25 +76,24 @@ async def create_study_plan(
     db.commit()
     db.refresh(plan)
 
-    # AIで計画文を生成（キャラクターがある場合）
-    if character:
-        ai_service = get_ai_service(current_user)
-        if ai_service:
-            try:
-                ai_plan = await generate_ai_plan(
-                    ai_service=ai_service,
-                    character=character,
-                    goal=data.goal,
-                    current_situation=data.current_situation,
-                    start_date=data.start_date,
-                    end_date=data.end_date,
-                )
-                plan.ai_plan = ai_plan
-                plan.ai_plan_summary = ai_plan[:200] if ai_plan else None
-                db.commit()
-                db.refresh(plan)
-            except Exception:
-                pass  # AI生成失敗してもプラン作成は成功とする
+    # AIで計画文を生成
+    ai_service = get_ai_service(current_user)
+    if ai_service:
+        try:
+            ai_plan = await generate_ai_plan(
+                ai_service=ai_service,
+                character=character,
+                goal=data.goal,
+                current_situation=data.current_situation,
+                start_date=data.start_date,
+                end_date=data.end_date,
+            )
+            plan.ai_plan = ai_plan
+            plan.ai_plan_summary = ai_plan[:200] if ai_plan else None
+            db.commit()
+            db.refresh(plan)
+        except Exception:
+            pass  # AI生成失敗してもプラン作成は成功とする
 
     return plan
 
@@ -134,6 +133,59 @@ async def get_study_plan(
         created_at=plan.created_at,
         tasks=task_responses,
     )
+
+
+@router.post("/{plan_id}/ai-plan/regenerate", response_model=StudyPlanResponse)
+async def regenerate_plan(
+    plan_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    plan = (
+        db.query(StudyPlan)
+        .filter(StudyPlan.id == plan_id, StudyPlan.user_id == current_user.id)
+        .first()
+    )
+    if not plan:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Study plan not found")
+
+    feedback = data.get("feedback", "").strip()
+    if not feedback:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="フィードバックを入力してください")
+
+    ai_service = get_ai_service(current_user)
+    if not ai_service:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI サービスが利用できません")
+
+    character = None
+    if plan.character_id:
+        character = db.query(Character).filter(Character.id == plan.character_id).first()
+
+    try:
+        new_plan = await regenerate_ai_plan(
+            ai_service=ai_service,
+            goal=plan.goal,
+            start_date=plan.start_date,
+            end_date=plan.end_date,
+            current_plan=plan.ai_plan or "",
+            feedback=feedback,
+            character=character,
+            current_situation=getattr(plan, "current_situation", None),
+        )
+        plan.ai_plan = new_plan
+        plan.ai_plan_summary = new_plan[:200] if new_plan else None
+        db.commit()
+        db.refresh(plan)
+    except Exception as e:
+        err = str(e)
+        if "429" in err or "quota" in err.lower() or "rate" in err.lower():
+            detail = "APIの利用制限に達しました。しばらく待ってから再度お試しください。"
+        else:
+            detail = "AI計画の再生成に失敗しました。"
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
+
+    return plan
 
 
 @router.put("/{plan_id}", response_model=StudyPlanResponse)

@@ -13,9 +13,11 @@ interface FormState {
   persona: string;
   tone: string;
   catchphrase: string;
+  custom_prompt: string;
+  avatar_url: string;
 }
 
-const defaultForm: FormState = { name: '', persona: '', tone: '', catchphrase: '' };
+const defaultForm: FormState = { name: '', persona: '', tone: '', catchphrase: '', custom_prompt: '', avatar_url: '' };
 
 export default function CharactersPage() {
   const { getToken } = useAuth();
@@ -51,6 +53,8 @@ export default function CharactersPage() {
       persona: c.persona ?? '',
       tone: c.tone ?? '',
       catchphrase: c.catchphrase ?? '',
+      custom_prompt: c.custom_prompt ?? '',
+      avatar_url: c.avatar_url ?? '',
     });
     setError('');
     setShowForm(true);
@@ -67,6 +71,8 @@ export default function CharactersPage() {
         persona: form.persona || undefined,
         tone: form.tone || undefined,
         catchphrase: form.catchphrase || undefined,
+        custom_prompt: form.custom_prompt || undefined,
+        avatar_url: form.avatar_url || undefined,
       };
       if (editTarget) {
         const updated = await updateCharacter(gt, editTarget.id, body);
@@ -133,6 +139,37 @@ export default function CharactersPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-5 space-y-4">
+              {/* アバタープレビュー */}
+              <div className="flex flex-col items-center gap-3">
+                <label className="cursor-pointer group relative">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-primary-100 flex items-center justify-center border-2 border-primary-200 group-hover:border-primary-400 transition-colors">
+                    {form.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={form.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-4xl">🎭</span>
+                    )}
+                  </div>
+                  <div className="absolute inset-0 rounded-full bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-xs font-medium">変更</span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        setForm({ ...form, avatar_url: ev.target?.result as string });
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
+                <p className="text-xs text-gray-400">クリックして画像をアップロード</p>
+              </div>
               <div>
                 <label className="label">名前 *</label>
                 <input
@@ -167,6 +204,15 @@ export default function CharactersPage() {
                   value={form.catchphrase}
                   onChange={(e) => setForm({ ...form, catchphrase: e.target.value })}
                   placeholder="例：絶対できる！一緒に頑張ろ！"
+                />
+              </div>
+              <div>
+                <label className="label">カスタムプロンプト（詳細な口調指定）</label>
+                <textarea
+                  className="input resize-none h-28"
+                  value={form.custom_prompt}
+                  onChange={(e) => setForm({ ...form, custom_prompt: e.target.value })}
+                  placeholder={`例：\n真面目で少し堅い言葉遣いだが、心を開くと「〜だよ」「〜かな」と素直な一面を見せる。ストイックで努力家だが不器用。褒められると照れる。\n\n※ここに書いた内容が上の設定より優先されます`}
                 />
               </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Trash2, User } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import type { Character } from '@/types';
 
 interface Props {
@@ -23,8 +23,13 @@ export default function CharacterCard({ character, onEdit, onDelete }: Props) {
     <div className="card p-5">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-            <User className="w-5 h-5 text-primary-500" />
+          <div className="w-10 h-10 bg-primary-100 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0">
+            {character.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={character.avatar_url} alt={character.name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xl">🎭</span>
+            )}
           </div>
           <div>
             <h3 className="font-semibold text-gray-900">{character.name}</h3>

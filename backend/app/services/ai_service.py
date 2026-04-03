@@ -66,11 +66,14 @@ def get_ai_service(user) -> Optional[AIService]:
 def build_character_system_prompt(character) -> str:
     """キャラクタープロンプトをコンパクトに構築する"""
     parts = [f"あなたは{character.name}として振る舞ってください。"]
-    if character.persona:
-        parts.append(f"性格:{character.persona}")
-    if character.tone:
-        parts.append(f"口調:{character.tone}")
-    if character.catchphrase:
-        parts.append(f"口癖:「{character.catchphrase}」")
+    if character.custom_prompt:
+        parts.append(character.custom_prompt)
+    else:
+        if character.persona:
+            parts.append(f"性格:{character.persona}")
+        if character.tone:
+            parts.append(f"口調:{character.tone}")
+        if character.catchphrase:
+            parts.append(f"口癖:「{character.catchphrase}」")
     parts.append("常にキャラクターを維持して学習支援してください。")
     return " ".join(parts)

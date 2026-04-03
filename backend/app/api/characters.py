@@ -29,6 +29,8 @@ async def create_character(
         persona=data.persona,
         tone=data.tone,
         catchphrase=data.catchphrase,
+        custom_prompt=data.custom_prompt,
+        avatar_url=data.avatar_url,
     )
     db.add(character)
     db.commit()
@@ -75,6 +77,10 @@ async def update_character(
         character.tone = data.tone
     if data.catchphrase is not None:
         character.catchphrase = data.catchphrase
+    if data.custom_prompt is not None:
+        character.custom_prompt = data.custom_prompt
+    if data.avatar_url is not None:
+        character.avatar_url = data.avatar_url
 
     db.commit()
     db.refresh(character)

@@ -10,6 +10,7 @@ import type {
   TodayTask,
   Conversation,
   ConversationDetail,
+  Message,
   ApiKeyStatus,
 } from '@/types';
 
@@ -43,6 +44,7 @@ async function req<T>(
 
 // Users
 export const getMe = (gt: GetToken) => req<User>('/me', gt);
+export const getDashboardStatus = (gt: GetToken) => req<import('@/types').DashboardStatus>('/me/dashboard', gt);
 export const updateMe = (gt: GetToken, body: { display_name?: string }) =>
   req<User>('/me', gt, { method: 'PUT', body: JSON.stringify(body) });
 
@@ -89,14 +91,27 @@ export const getStudyPlan = (gt: GetToken, id: string) =>
   req<StudyPlanDetail>(`/study-plans/${id}`, gt);
 export const deleteStudyPlan = (gt: GetToken, id: string) =>
   req<null>(`/study-plans/${id}`, gt, { method: 'DELETE' });
+export const regenerateAiPlan = (gt: GetToken, id: string, feedback: string) =>
+  req<StudyPlan>(`/study-plans/${id}/ai-plan/regenerate`, gt, {
+    method: 'POST',
+    body: JSON.stringify({ feedback }),
+  });
 
 // Tasks
 export const listTodayTasks = (gt: GetToken) =>
   req<TodayTask[]>('/tasks/today', gt);
+export const listUpcomingTasks = (gt: GetToken) =>
+  req<TodayTask[]>('/tasks/upcoming', gt);
+export const listCompletedTasks = (gt: GetToken) =>
+  req<{ id: string; title: string; study_plan_title: string; due_date: string | null; completed_at: string; cheer_message: string | null }[]>('/tasks/completed', gt);
 export const listTasks = (gt: GetToken, planId: string) =>
   req<Task[]>(`/study-plans/${planId}/tasks`, gt);
 export const generateTasks = (gt: GetToken, planId: string) =>
   req<Task[]>(`/study-plans/${planId}/tasks/generate`, gt, { method: 'POST' });
+export const checkDelay = (gt: GetToken, planId: string) =>
+  req<{ is_delayed: boolean; warning: string | null }>(`/study-plans/${planId}/tasks/delay-check`, gt);
+export const rescheduleTasks = (gt: GetToken, planId: string) =>
+  req<Task[]>(`/study-plans/${planId}/tasks/reschedule`, gt, { method: 'POST' });
 export const createTask = (gt: GetToken, planId: string, body: TaskCreate) =>
   req<Task>(`/study-plans/${planId}/tasks`, gt, {
     method: 'POST',
@@ -125,7 +140,7 @@ export const sendMessage = (
   convId: string,
   content: string
 ) =>
-  req<ConversationDetail>(`/conversations/${convId}/messages`, gt, {
+  req<Message>(`/conversations/${convId}/messages`, gt, {
     method: 'POST',
     body: JSON.stringify({ content }),
   });

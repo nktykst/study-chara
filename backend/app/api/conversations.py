@@ -98,11 +98,6 @@ async def send_message(
     if not conversation:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
 
-    if not current_user.encrypted_api_key:
-        raise HTTPException(
-            status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail="API key not set. Please configure your AI provider API key.",
-        )
 
     # ユーザーメッセージを保存
     user_message = Message(
@@ -138,6 +133,8 @@ async def send_message(
         situation = f"／現在の状況: {plan.current_situation}" if getattr(plan, 'current_situation', None) else ""
         system += f"\n\n学習計画: {plan.title}／目標: {plan.goal}{situation}／期間: {plan.start_date}〜{plan.end_date}"
 
+    system += "\n\n【厳守ルール】返答は1〜2文のみ。絶対に3文を超えてはいけない。LINEのひとことメッセージのように短く自然に。説明・アドバイス・まとめは不要。マークダウン・箇条書き・番号リスト禁止。AIっぽい丁寧な言い回し（「〜ですね」「〜しましょう」「〜ですよ」の繰り返し）も避ける。"
+
     # AI返答生成
     ai_service = get_ai_service(current_user)
     if not ai_service:
@@ -147,7 +144,7 @@ async def send_message(
         )
 
     try:
-        ai_response = await ai_service.generate(system=system, messages=messages_for_ai, max_tokens=512)
+        ai_response = await ai_service.generate(system=system, messages=messages_for_ai, max_tokens=150)
     except Exception as e:
         err = str(e)
         if "429" in err or "quota" in err.lower() or "rate" in err.lower():

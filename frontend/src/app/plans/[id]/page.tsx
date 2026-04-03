@@ -7,6 +7,7 @@ import Link from 'next/link';
 import NavBar from '@/components/NavBar';
 import TaskList from '@/components/TaskList';
 import ProgressRing from '@/components/ProgressRing';
+import PomodoroTimer from '@/components/PomodoroTimer';
 import {
   getStudyPlan,
   generateTasks,
@@ -15,12 +16,14 @@ import {
   uncompleteTask,
   deleteTask,
   listCharacters,
+  regenerateAiPlan,
+  checkDelay,
+  rescheduleTasks,
 } from '@/lib/api';
 import type { StudyPlanDetail, Task, Character } from '@/types';
 import { formatDate } from '@/lib/utils';
 import {
   Calendar,
-  MessageCircle,
   Sparkles,
   Plus,
   ChevronLeft,
@@ -38,6 +41,11 @@ export default function PlanDetailPage() {
   const [character, setCharacter] = useState<Character | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [delayWarning, setDelayWarning] = useState<string | null>(null);
+  const [rescheduling, setRescheduling] = useState(false);
+  const [feedback, setFeedback] = useState('');
+  const [regenerating, setRegenerating] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDate, setNewTaskDate] = useState('');
@@ -54,6 +62,11 @@ export default function PlanDetailPage() {
         const found = chars.find((c) => c.id === data.character_id);
         if (found) setCharacter(found);
       }
+
+      const delay = await checkDelay(gt, id).catch(() => null);
+      if (delay?.is_delayed && delay.warning) {
+        setDelayWarning(delay.warning);
+      }
     } catch {
       router.push('/dashboard');
     } finally {
@@ -62,6 +75,36 @@ export default function PlanDetailPage() {
   };
 
   useEffect(() => { load(); }, [id]);
+
+  const handleReschedule = async () => {
+    setRescheduling(true);
+    try {
+      const tasks = await rescheduleTasks(gt, id);
+      setPlan((prev) => prev ? { ...prev, tasks } : prev);
+      setDelayWarning(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '再スケジュールに失敗しました');
+    } finally {
+      setRescheduling(false);
+    }
+  };
+
+  const handleRegeneratePlan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedback.trim()) return;
+    setRegenerating(true);
+    setError('');
+    try {
+      const updated = await regenerateAiPlan(gt, id, feedback);
+      setPlan((prev) => prev ? { ...prev, ai_plan: updated.ai_plan } : prev);
+      setFeedback('');
+      setShowFeedback(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '再生成に失敗しました');
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   const handleGenerateTasks = async () => {
     if (!confirm('AIがタスクを自動生成します。既存のタスクはそのままです。続けますか？')) return;
@@ -160,13 +203,6 @@ export default function PlanDetailPage() {
         <div className="card p-6 mb-6">
           <div className="flex items-start justify-between mb-4">
             <h1 className="text-2xl font-bold text-gray-900">{plan.title}</h1>
-            <Link
-              href={`/plans/${plan.id}/chat`}
-              className="btn-primary flex items-center gap-2 ml-4"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>会話</span>
-            </Link>
           </div>
 
           {character && (
@@ -203,9 +239,76 @@ export default function PlanDetailPage() {
               <div className="mt-3 p-4 bg-primary-50 rounded-lg border border-primary-100 text-sm text-gray-700 whitespace-pre-wrap">
                 {plan.ai_plan}
               </div>
+              {!showFeedback ? (
+                <button
+                  onClick={() => setShowFeedback(true)}
+                  className="mt-2 text-xs text-primary-500 hover:text-primary-700 underline"
+                >
+                  この計画にフィードバックして改善する
+                </button>
+              ) : (
+                <form onSubmit={handleRegeneratePlan} className="mt-3 space-y-2">
+                  <textarea
+                    className="input resize-none h-20 text-sm"
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="例：もう少し基礎から始めたい、週末は休みにしてほしい..."
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setShowFeedback(false); setFeedback(''); }}
+                      className="flex-1 btn-secondary text-sm py-1.5"
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!feedback.trim() || regenerating}
+                      className="flex-1 btn-primary text-sm py-1.5"
+                    >
+                      {regenerating ? '再生成中...' : '改善する'}
+                    </button>
+                  </div>
+                </form>
+              )}
             </details>
           )}
         </div>
+
+        {/* 遅延警告 */}
+        {delayWarning && (
+          <div className="card p-4 border border-orange-200 bg-orange-50 mb-6">
+            <div className="flex items-start gap-3">
+              {character?.avatar_url && (
+                <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={character.avatar_url} alt={character.name} className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="flex-1">
+                {character && <p className="text-xs font-semibold text-orange-400 mb-1">{character.name}</p>}
+                <p className="text-sm text-gray-800 mb-3">{delayWarning}</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleReschedule}
+                    disabled={rescheduling}
+                    className="btn-primary text-sm py-1.5 px-4"
+                  >
+                    {rescheduling ? '再調整中...' : '再スケジュールする'}
+                  </button>
+                  <button
+                    onClick={() => setDelayWarning(null)}
+                    className="btn-secondary text-sm py-1.5 px-4"
+                  >
+                    このままにする
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tasks */}
         <div className="card p-6">
@@ -241,14 +344,15 @@ export default function PlanDetailPage() {
             </div>
           )}
 
+          <PomodoroTimer character={character} />
+
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-semibold text-gray-900">タスク一覧</h2>
             <div className="flex gap-2">
               <button
                 onClick={handleGenerateTasks}
-                disabled={generating || !plan.character_id}
+                disabled={generating}
                 className="flex items-center gap-1.5 text-sm btn-secondary"
-                title={!plan.character_id ? 'キャラクターが設定されていません' : ''}
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 {generating ? 'AI生成中...' : 'AIで生成'}
@@ -298,6 +402,7 @@ export default function PlanDetailPage() {
 
           <TaskList
             tasks={plan.tasks}
+            character={character}
             onComplete={handleComplete}
             onUncomplete={handleUncomplete}
             onDelete={handleDeleteTask}

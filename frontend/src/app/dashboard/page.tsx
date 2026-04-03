@@ -6,10 +6,11 @@ import Link from 'next/link';
 import NavBar from '@/components/NavBar';
 import ApiKeyBanner from '@/components/ApiKeyBanner';
 import ProgressRing from '@/components/ProgressRing';
-import { listStudyPlans, getApiKeyStatus, deleteStudyPlan, listTodayTasks, completeTask } from '@/lib/api';
+import { listStudyPlans, getApiKeyStatus, deleteStudyPlan, listTodayTasks, completeTask, getDashboardStatus } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
-import type { StudyPlan, ApiKeyStatus, TodayTask } from '@/types';
-import { Plus, Calendar, Trash2, MessageCircle, BookOpen, AlertCircle, Circle } from 'lucide-react';
+import type { StudyPlan, ApiKeyStatus, TodayTask, DashboardStatus } from '@/types';
+import CharacterWidget from '@/components/CharacterWidget';
+import { Plus, Calendar, Trash2, BookOpen, AlertCircle, Circle } from 'lucide-react';
 
 export default function DashboardPage() {
   const { getToken } = useAuth();
@@ -18,22 +19,61 @@ export default function DashboardPage() {
   const [plans, setPlans] = useState<StudyPlan[]>([]);
   const [todayTasks, setTodayTasks] = useState<TodayTask[]>([]);
   const [apiKeyStatus, setApiKeyStatus] = useState<ApiKeyStatus | null>(null);
+  const [dashboardStatus, setDashboardStatus] = useState<DashboardStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [todayGoal, setTodayGoal] = useState('');
+  const [savedGoal, setSavedGoal] = useState<string | null>(null);
+  const [goalReply, setGoalReply] = useState<string | null>(null);
 
   const load = async () => {
-    const [plansData, keyStatus, todayData] = await Promise.all([
-      listStudyPlans(gt).catch(() => [] as StudyPlan[]),
-      getApiKeyStatus(gt).catch(() => null),
-      listTodayTasks(gt).catch(() => [] as TodayTask[]),
-    ]);
-    setPlans(plansData);
-    setApiKeyStatus(keyStatus);
-    setTodayTasks(todayData);
-    setLoading(false);
+    try {
+      const [plansData, keyStatus, todayData, dashStatus] = await Promise.all([
+        listStudyPlans(gt).catch(() => [] as StudyPlan[]),
+        getApiKeyStatus(gt).catch(() => null),
+        listTodayTasks(gt).catch(() => [] as TodayTask[]),
+        getDashboardStatus(gt).catch(() => null),
+      ]);
+      setPlans(plansData);
+      setApiKeyStatus(keyStatus);
+      setTodayTasks(todayData);
+      setDashboardStatus(dashStatus);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const saved = localStorage.getItem('todayGoal');
+    const savedDate = localStorage.getItem('todayGoalDate');
+    if (saved && savedDate === today) setSavedGoal(saved);
+  }, []);
+
+  // 達成率を全プランで計算
+  const totalCompleted = plans.reduce((s, p) => s + p.completed_count, 0);
+  const totalTasks = plans.reduce((s, p) => s + p.task_count, 0);
+  const overallProgress = totalTasks > 0 ? (totalCompleted / totalTasks) * 100 : 0;
+
+  const handleSaveGoal = () => {
+    if (!todayGoal.trim()) return;
+    const today = new Date().toDateString();
+    localStorage.setItem('todayGoal', todayGoal);
+    localStorage.setItem('todayGoalDate', today);
+    setSavedGoal(todayGoal);
+
+    // キャラの返答（固定候補からランダム）
+    const replies = [
+      `「${todayGoal}」了解！一緒に頑張ろ。`,
+      `待ってた！「${todayGoal}」ね、応援してる。`,
+      `${todayGoal}、いいね。絶対できるよ。`,
+      `よし、「${todayGoal}」終わったら教えて！`,
+    ];
+    setGoalReply(replies[Math.floor(Math.random() * replies.length)]);
+    setTodayGoal('');
+  };
 
   const handleComplete = async (taskId: string) => {
     if (togglingId) return;
@@ -61,6 +101,89 @@ export default function DashboardPage() {
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
         {apiKeyStatus && !apiKeyStatus.is_set && (
           <ApiKeyBanner />
+        )}
+
+        {/* キャラクターウィジェット */}
+        {!loading && dashboardStatus && (
+          <CharacterWidget status={dashboardStatus} overallProgress={overallProgress} />
+        )}
+
+        {/* 今日の目標宣言 */}
+        {!loading && dashboardStatus?.character && (
+          <section className="card p-4">
+            <p className="text-xs font-semibold text-gray-500 mb-3">📣 今日の目標を宣言する</p>
+            {savedGoal ? (
+              <div>
+                <div className="bg-primary-50 rounded-xl px-4 py-2.5 text-sm text-primary-800 mb-2">
+                  「{savedGoal}」
+                </div>
+                {goalReply && (
+                  <div className="flex items-end gap-2 mt-2">
+                    {dashboardStatus.character?.avatar_url && (
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={dashboardStatus.character.avatar_url} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-3 py-2 text-sm text-gray-800">
+                      {goalReply}
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={() => { setSavedGoal(null); setGoalReply(null); localStorage.removeItem('todayGoal'); }}
+                  className="text-xs text-gray-400 hover:text-gray-600 mt-2"
+                >
+                  変更する
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  className="flex-1 input text-sm"
+                  value={todayGoal}
+                  onChange={(e) => setTodayGoal(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveGoal()}
+                  placeholder="今日やること一言で..."
+                />
+                <button onClick={handleSaveGoal} disabled={!todayGoal.trim()} className="btn-primary text-sm px-4">
+                  宣言！
+                </button>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* 週次レポート（土日のみ） */}
+        {!loading && dashboardStatus?.weekly_report && (
+          <div className="card p-4 border border-blue-100 bg-blue-50">
+            <div className="flex items-end gap-3">
+              {dashboardStatus.character?.avatar_url && (
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={dashboardStatus.character.avatar_url} alt="" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div>
+                <p className="text-xs text-blue-400 font-semibold mb-1">📊 今週のまとめ</p>
+                <p className="text-sm text-gray-800">{dashboardStatus.weekly_report}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 称号 */}
+        {!loading && dashboardStatus?.titles && dashboardStatus.titles.length > 0 && (
+          <section>
+            <p className="text-xs font-semibold text-gray-500 mb-2">🏆 獲得した称号</p>
+            <div className="flex flex-wrap gap-2">
+              {dashboardStatus.titles.map((t) => (
+                <span key={t.id} className="inline-flex items-center gap-1 bg-primary-50 border border-primary-100 text-primary-700 text-xs font-medium px-3 py-1.5 rounded-full">
+                  {t.emoji} {t.label}
+                </span>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* 今日のタスク */}
@@ -158,10 +281,6 @@ export default function DashboardPage() {
                     <div className="flex gap-2">
                       <Link href={`/plans/${plan.id}`} className="flex-1 text-center btn-secondary text-sm py-1.5">
                         詳細・タスク
-                      </Link>
-                      <Link href={`/plans/${plan.id}/chat`} className="flex items-center gap-1 btn-primary text-sm py-1.5 px-3">
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span>会話</span>
                       </Link>
                     </div>
                   </div>

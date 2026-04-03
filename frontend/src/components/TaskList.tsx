@@ -1,20 +1,36 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle2, Circle, Trash2, Sparkles } from 'lucide-react';
-import type { Task } from '@/types';
+import { CheckCircle2, Circle, Trash2, Play } from 'lucide-react';
+import type { Task, Character } from '@/types';
 import { formatDate } from '@/lib/utils';
+
+const START_MESSAGES = [
+  'いってらっしゃい！',
+  '頑張って！応援してる。',
+  'やるじゃん、始めたね。',
+  '待ってるよ！',
+];
 
 interface Props {
   tasks: Task[];
+  character?: Character | null;
   onComplete: (taskId: string) => Promise<string | null>;
   onUncomplete: (taskId: string) => Promise<void>;
   onDelete: (taskId: string) => Promise<void>;
 }
 
-export default function TaskList({ tasks, onComplete, onUncomplete, onDelete }: Props) {
-  const [cheerMessage, setCheerMessage] = useState<{ taskId: string; msg: string } | null>(null);
+export default function TaskList({ tasks, character, onComplete, onUncomplete, onDelete }: Props) {
+  const [popup, setPopup] = useState<{ msg: string } | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [startingId, setStartingId] = useState<string | null>(null);
+
+  const handleStart = (task: Task) => {
+    setStartingId(task.id);
+    const msg = START_MESSAGES[Math.floor(Math.random() * START_MESSAGES.length)];
+    setPopup({ msg });
+    setTimeout(() => setPopup(null), 4000);
+  };
 
   const handleToggle = async (task: Task) => {
     if (loadingId) return;
@@ -22,10 +38,12 @@ export default function TaskList({ tasks, onComplete, onUncomplete, onDelete }: 
     try {
       if (task.is_completed) {
         await onUncomplete(task.id);
-        if (cheerMessage?.taskId === task.id) setCheerMessage(null);
       } else {
         const msg = await onComplete(task.id);
-        if (msg) setCheerMessage({ taskId: task.id, msg });
+        if (msg) {
+          setPopup({ msg });
+          setTimeout(() => setPopup(null), 5000);
+        }
       }
     } finally {
       setLoadingId(null);
@@ -44,6 +62,31 @@ export default function TaskList({ tasks, onComplete, onUncomplete, onDelete }: 
 
   return (
     <div>
+      {/* タスク完了ポップアップ */}
+      {popup && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce-in"
+          onClick={() => setPopup(null)}
+        >
+          <div className="bg-white rounded-2xl shadow-xl border border-primary-100 px-5 py-4 flex items-end gap-4 max-w-sm cursor-pointer">
+            <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 bg-primary-50 flex items-center justify-center">
+              {character?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={character.avatar_url} alt={character.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl">🎭</span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              {character && (
+                <p className="text-xs font-semibold text-primary-400 mb-1">{character.name}</p>
+              )}
+              <p className="text-sm text-gray-800 leading-relaxed">{popup.msg}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm text-gray-500">
           {completed} / {tasks.length} 完了
@@ -96,6 +139,15 @@ export default function TaskList({ tasks, onComplete, onUncomplete, onDelete }: 
                 )}
               </div>
 
+              {!task.is_completed && startingId !== task.id && (
+                <button
+                  onClick={() => handleStart(task)}
+                  className="p-1 rounded hover:bg-primary-50 text-gray-300 hover:text-primary-400 transition-colors"
+                  title="開始する"
+                >
+                  <Play className="w-3.5 h-3.5" />
+                </button>
+              )}
               <button
                 onClick={() => onDelete(task.id)}
                 className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-400 transition-colors"
@@ -103,13 +155,6 @@ export default function TaskList({ tasks, onComplete, onUncomplete, onDelete }: 
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
-
-            {cheerMessage?.taskId === task.id && (
-              <div className="mt-1 ml-8 flex items-start gap-1.5 bg-primary-50 rounded-lg p-2.5">
-                <Sparkles className="w-4 h-4 text-primary-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-primary-700">{cheerMessage.msg}</p>
-              </div>
-            )}
           </li>
         ))}
       </ul>
