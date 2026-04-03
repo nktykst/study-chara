@@ -148,7 +148,7 @@ export default function CharactersPage() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={form.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-4xl">🎭</span>
+                      <div className="w-full h-full bg-primary-200 rounded-full" />
                     )}
                   </div>
                   <div className="absolute inset-0 rounded-full bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

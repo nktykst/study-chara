@@ -52,14 +52,8 @@ export default function CharacterWidget({ status, overallProgress }: Props) {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-4xl">
-                🎭
-              </div>
+              <div className="w-full h-full flex items-center justify-center bg-primary-100" />
             )}
-          </div>
-          {/* 気分アイコン */}
-          <div className="absolute -top-1 -right-1 text-lg">
-            {mood === 'happy' ? '😊' : mood === 'lonely' ? '🥺' : '😊'}
           </div>
         </div>
 
